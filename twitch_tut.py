@@ -11,7 +11,7 @@ import os
 from irc.bot import SingleServerIRCBot
 from requests import get
 
-from lib import cmds
+from lib import db, cmds, react
 
 # pip install python-dotenv
 from dotenv import load_dotenv
@@ -52,15 +52,17 @@ class Bot(SingleServerIRCBot):
             print(f'Joined: {channel}')
             cxn.join(channel)
             self.send_message("Now online.", channel)
+        db.build()
         print('\n')
 
+    @db.with_commit
     def on_pubmsg(self, cxn, event):
-        print(event)
         tags = {kvpair["key"]: kvpair["value"] for kvpair in event.tags}
         user = {"name": tags['display-name'], "id": tags['user-id']}
         message = event.arguments[0]
         channel = event.target
         if user["name"] != self.BOT_NAME:
+            react.process(self, user, message, channel)
             cmds.process(self, user, message, channel)
 
         print(f"Message from {user['name']} in {channel}: {message}")
