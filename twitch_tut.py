@@ -61,6 +61,7 @@ class Bot(SingleServerIRCBot):
         user = {"name": tags['display-name'], "id": tags['user-id']}
         message = event.arguments[0]
         channel = event.target
+        # print(user['name'], channel[1:])
         if user["name"] != self.BOT_NAME:
             react.process(self, user, message, channel)
             cmds.process(self, user, message, channel)
