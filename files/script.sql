@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS users (
     UserName text,
     MessagesSent integer DEFAULT 0,
     Coins integer DEFAULT 0,
+    Gems integer DEFAULT 0,
     CoinLock text DEFAULT CURRENT_TIMESTAMP,
+    GemLock text DEFAULT CURRENT_TIMESTAMP,
     Warnings integer DEFAULT 0
 );
