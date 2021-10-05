@@ -31,7 +31,7 @@ class Bot(SingleServerIRCBot):
                  DM=False,
                  PORT=6667,
                  HOST="irc.chat.twitch.tv"):
-
+        # Setting bot self variable
         self.BOT_NAME = BOT_NAME.lower()
         self.CLIENT_ID = CLIENT_ID
         self.TOKEN = TOKEN
@@ -44,12 +44,13 @@ class Bot(SingleServerIRCBot):
         self.update_access_token()
         self.poll = polls.Poll()
         self.PREFIX = '!'
-
+        # Connection points for bot
         url = f"https://api.twitch.tv/kraken/users?login={self.BOT_NAME}"
         headers = {
             "Client-ID": self.CLIENT_ID,
             "Accept": "application/vnd.twitchtv.v5+json"
         }
+        # Goes through each channel and obtain subscriber list and channel ids
         for channel_name in self.CHANNELS:
             channel_id = get(
                 f"https://api.twitch.tv/kraken/users?login={channel_name[1:]}",
@@ -59,24 +60,31 @@ class Bot(SingleServerIRCBot):
                 self.DM.append(channel_id)
             self.CHANNEL_IDS[channel_name] = channel_id
             print(channel_name, channel_id)
-            self.sub_list[channel_name] = get_sublist(
-                channel_id, self.CLIENT_ID, self.ACCESS_TOKEN[channel_name])
         self.CHANNEL_IDS_LIST = [
             int(self.CHANNEL_IDS[key]) for key in self.CHANNEL_IDS
         ]
-
+        # Connects the bot to Twitch and allows it to chat and stuff
         resp = get(url, headers=headers).json()
         self.channel_id = resp["users"][0]["_id"]
         super().__init__([(self.HOST, self.PORT, self.TOKEN)], self.BOT_NAME,
                          self.BOT_NAME)
 
+    def update_sub_list(self):
+        for channel_name, channel_id in self.CHANNEL_IDS.items():
+            self.sub_list[channel_name] = get_sublist(
+                channel_id, self.CLIENT_ID, self.ACCESS_TOKEN[channel_name])
+        self.update_sub_list_timer = Timer(60, self.update_sub_list)
+        self.update_sub_list_timer.start()
+
     def update_access_token(self):
+        # Updates the access token every hour
         print('Updated Access Token')
         self.ACCESS_TOKEN = refresh_token()
-        t = Timer(3600, self.update_access_token)
-        t.start()
+        self.update_access_token_timer = Timer(3600, self.update_access_token)
+        self.update_access_token_timer.start()
 
     def on_welcome(self, cxn, event):
+        self.update_sub_list()
         for req in ("membership", "tags", "commands"):
             cxn.cap("REQ", f":twitch.tv/{req}")
         for channel in self.CHANNELS:
