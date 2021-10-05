@@ -3,12 +3,13 @@ import requests
 from dotenv import load_dotenv
 
 
-def getoauth_token():
+def getoauth_tokens():
     load_dotenv("token.env")
     CLIENT_ID = os.getenv('CLIENT_ID')
     SECRET = os.getenv('SECRET')
     tokens, refresh_tokens = [], []
     for streamer_code in os.getenv('CODES').split(','):
+        print(streamer_code)
         (channel, code) = streamer_code.split(':')
         try:
             token = requests.post(
@@ -86,6 +87,7 @@ def getoauth_token():
     }
 
 
-# getoauth_token()
-# print(refresh_token())
-# print(getoauth_token())
+if __name__ == '__main__':
+    getoauth_tokens()
+    # print(refresh_token())
+    # print(getoauth_token())
