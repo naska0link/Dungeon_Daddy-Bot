@@ -69,29 +69,34 @@ class Bot(SingleServerIRCBot):
         super().__init__([(self.HOST, self.PORT, self.TOKEN)], self.BOT_NAME,
                          self.BOT_NAME)
 
+    # Updates the sub list
     def update_sub_list(self):
         for channel_name, channel_id in self.CHANNEL_IDS.items():
-            self.sub_list[channel_name] = get_sublist(
+            self.sub_list[channel_name] = self.get_sublist(
                 channel_id, self.CLIENT_ID, self.ACCESS_TOKEN[channel_name])
         self.update_sub_list_timer = Timer(60, self.update_sub_list)
         self.update_sub_list_timer.start()
 
+    # Updates the access token every hour
     def update_access_token(self):
-        # Updates the access token every hour
         print('Updated Access Token')
         self.ACCESS_TOKEN = refresh_token()
         self.update_access_token_timer = Timer(3600, self.update_access_token)
         self.update_access_token_timer.start()
 
+    # Runs when the bot connects to the channels
     def on_welcome(self, cxn, event):
+        # Updates the subscription list
         self.update_sub_list()
+        # Connects to the channels
         for req in ("membership", "tags", "commands"):
             cxn.cap("REQ", f":twitch.tv/{req}")
+        # Sends to each channel a message saying it is online
         for channel in self.CHANNELS:
             print(f'Joined: {channel}')
             cxn.join(channel)
             self.send_message("Now online.", channel)
-
+        # Builds the database, and makes sure the that they are set up right
         db.build()
         for channel in self.CHANNELS:
             try:
@@ -108,8 +113,10 @@ class Bot(SingleServerIRCBot):
                 pass
         print('\n')
 
+    # Everytime a message is sent in chat
     @db.with_commit
     def on_pubmsg(self, cxn, event):
+        # Process the event
         tags = {kvpair["key"]: kvpair["value"] for kvpair in event.tags}
         user = {
             "name": tags['display-name'],
@@ -118,6 +125,7 @@ class Bot(SingleServerIRCBot):
         }
         message = event.arguments[0]
         channel = event.target
+        # Makes sure that the message is not the bots, then proccess the message
         if user["name"] != self.BOT_NAME:
             react.process(self, user, message, channel)
             cmds.process(self, user, message, channel)
@@ -125,32 +133,33 @@ class Bot(SingleServerIRCBot):
 
         print(f"Message from {user['name']} in {channel}: {message}")
 
+    # Allows the bot to send message to the channels
     def send_message(self, message, channel):
         self.connection.privmsg(channel, message)
 
+    def get_sublist(self, channel_id, client_id, access_token):
+        response = get(
+            f"https://api.twitch.tv/helix/subscriptions?broadcaster_id={channel_id}",
+            headers={
+                "Client-ID": client_id,
+                "Authorization": f"Bearer {access_token}"
+            })
+        result = response.json()
+        try:
+            if result['error']:
+                return "error"
+        except:
+            sub_list = []
+            for sub in result['data']:
+                sub_list.append((int(sub['user_id']), int(sub['tier'])))
+            return np.array(sub_list)
 
+
+# Builds the twitch bot
 def make_twitch_bot(bot_name, client_id, token, streamer, DM=False):
     bot = Bot(bot_name, client_id, token, streamer, DM=DM)
     bot.start()
     return bot
-
-
-def get_sublist(channel_id, client_id, access_token):
-    response = get(
-        f"https://api.twitch.tv/helix/subscriptions?broadcaster_id={channel_id}",
-        headers={
-            "Client-ID": client_id,
-            "Authorization": f"Bearer {access_token}"
-        })
-    result = response.json()
-    try:
-        if result['error']:
-            return "error"
-    except:
-        sub_list = []
-        for sub in result['data']:
-            sub_list.append((int(sub['user_id']), int(sub['tier'])))
-        return np.array(sub_list)
 
 
 if __name__ == '__main__':
