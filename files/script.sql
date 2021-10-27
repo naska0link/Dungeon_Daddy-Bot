@@ -18,3 +18,7 @@ CREATE TABLE IF NOT EXISTS shop (
     ItemCost integer,
     Currency text
 );
+CREATE TABLE IF NOT EXISTS reactcommands (
+    CommandName text PRIMARY KEY,
+    CommandMessage text
+);
