@@ -10,6 +10,7 @@ Some code in this file is licensed under the Apache License, Version 2.0.
 import os
 import numpy as np
 import requests
+from twitchAPI.twitch import Twitch
 
 from irc.bot import SingleServerIRCBot
 from requests import get
@@ -31,6 +32,7 @@ class Bot(SingleServerIRCBot):
         TOKEN,
         CHANNELS,
         DISCORD_WEBHOOK,
+        SECRET,
         DM=False,
         PORT=6667,
         HOST="irc.chat.twitch.tv",
@@ -38,6 +40,7 @@ class Bot(SingleServerIRCBot):
         # Setting bot self variable
         self.BOT_NAME = BOT_NAME.lower()
         self.CLIENT_ID = CLIENT_ID
+        self.SECRET = SECRET
         self.TOKEN = TOKEN
         self.CHANNELS = CHANNELS.split(",")
         self.DM = []
@@ -51,26 +54,24 @@ class Bot(SingleServerIRCBot):
         self.DISCORD_WEBHOOK = DISCORD_WEBHOOK
 
         # Connection points for bot
-        url = f"https://api.twitch.tv/kraken/users?login={self.BOT_NAME}"
-        headers = {
-            "Client-ID": self.CLIENT_ID,
-            "Accept": "application/vnd.twitchtv.v5+json",
-        }
+        self.twitch = Twitch(self.CLIENT_ID, self.SECRET)
+
+        # url = f"https://api.twitch.tv/kraken/users?login={self.BOT_NAME}"
+        # headers = {
+        #     "Client-ID": self.CLIENT_ID,
+        #     "Accept": "application/vnd.twitchtv.v5+json",
+        # }
         # Goes through each channel and obtain subscriber list and channel ids
         for channel_name in self.CHANNELS:
-            channel_id = get(
-                f"https://api.twitch.tv/kraken/users?login={channel_name[1:]}",
-                headers=headers,
-            ).json()
-            channel_id = channel_id["users"][0]["_id"]
+            channel_id = self.twitch.get_users(logins=[channel_name[1:]])
+            channel_id = channel_id["data"][0]["id"]
             if channel_name in DM:
                 self.DM.append(channel_id)
             self.CHANNEL_IDS[channel_name] = channel_id
-            print(channel_name, channel_id)
         self.CHANNEL_IDS_LIST = [int(self.CHANNEL_IDS[key]) for key in self.CHANNEL_IDS]
         # Connects the bot to Twitch and allows it to chat and stuff
-        resp = get(url, headers=headers).json()
-        self.channel_id = resp["users"][0]["_id"]
+        resp = self.twitch.get_users(logins=[self.BOT_NAME])
+        self.channel_id = resp["data"][0]["id"]
         super().__init__(
             [(self.HOST, self.PORT, self.TOKEN)], self.BOT_NAME, self.BOT_NAME
         )
@@ -111,7 +112,7 @@ class Bot(SingleServerIRCBot):
             cxn.join(channel)
             self.send_message("Now online.", channel)
         self.discord_log({"content": "Now online."})
-        self._resend_copyright()
+        # self._resend_copyright()
         # Builds the database, and makes sure the that they are set up right
         db.build()
         for channel in self.CHANNELS:
@@ -180,8 +181,10 @@ class Bot(SingleServerIRCBot):
 
 
 # Builds the twitch bot
-def make_twitch_bot(bot_name, client_id, token, streamer, DISCORD_WEBHOOK, DM=False):
-    bot = Bot(bot_name, client_id, token, streamer, DISCORD_WEBHOOK, DM=DM)
+def make_twitch_bot(
+    bot_name, client_id, token, streamer, DISCORD_WEBHOOK, SECRET, DM=False
+):
+    bot = Bot(bot_name, client_id, token, streamer, DISCORD_WEBHOOK, SECRET, DM=DM)
     bot.start()
     return bot
 
@@ -194,5 +197,6 @@ if __name__ == "__main__":
         os.getenv("TOKEN"),
         os.getenv("STREAMERS"),
         os.getenv("DISCORD_WEBHOOK"),
+        os.getenv("SECRET"),
         DM=os.getenv("DM").split(","),
     )

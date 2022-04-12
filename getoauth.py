@@ -25,7 +25,7 @@ def getoauth_tokens():
         tokens.append(f"{channel}:{acc_token}")
         refresh_tokens.append(f"{channel}:{ref_token}")
     file = ""
-    with open("token.env", "r", encoding="utf-8") as f:
+    with open("tokens.env", "r", encoding="utf-8") as f:
         env = f.read()
         file = []
         for splt in env.split("\n"):
@@ -41,7 +41,7 @@ def getoauth_tokens():
 
 
 def refresh_token():
-    load_dotenv("token.env")
+    load_dotenv("tokens.env")
     CLIENT_ID = os.getenv("CLIENT_ID")
     SECRET = os.getenv("SECRET")
     REFRESH_CODES = os.getenv("REFRESH_CODES").split(",")
@@ -63,7 +63,7 @@ def refresh_token():
         tokens.append(f"{channel}:{acc_token}")
         refresh_tokens.append(f"{channel}:{ref_token}")
     file = ""
-    with open("token.env", "r", encoding="utf-8") as f:
+    with open("tokens.env", "r", encoding="utf-8") as f:
         env = f.read()
         file = []
         for splt in env.split("\n"):
@@ -74,7 +74,7 @@ def refresh_token():
             else:
                 file.append(splt)
         file = "\n".join(file)
-    with open("token.env", "w", encoding="utf-8") as f:
+    with open("tokens.env", "w", encoding="utf-8") as f:
         f.write(file)
     return {keypair.split(":")[0]: keypair.split(":")[1] for keypair in tokens}
 

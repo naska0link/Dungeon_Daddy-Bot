@@ -12,6 +12,8 @@ def balance(bot, user, channel, *args):
 
 
 def add_shop(bot, user, channel, item=None, cost=None, currency=None, *args):
+    if item == None or cost == None or currency == None:
+        return
     currency = (
         currency[0].upper() + currency[1:]
         if currency.lower() in ["gem", "coin"]
@@ -33,6 +35,8 @@ def add_shop(bot, user, channel, item=None, cost=None, currency=None, *args):
 
 
 def edit_shop(bot, user, channel, item=None, cost=None, currency=None, *args):
+    if item == None or cost == None or currency == None:
+        return
     currency = (
         currency[0].upper() + currency[1:]
         if currency.lower() in ["gem", "coin"]
@@ -54,6 +58,8 @@ def edit_shop(bot, user, channel, item=None, cost=None, currency=None, *args):
 
 
 def remove_shop(bot, user, channel, item=None, *args):
+    if item == None:
+        return
     item = (item.replace(" ", "_")).lower() if item != None else None
 
     if (int(user["id"]) in bot.CHANNEL_IDS_LIST) and (item != None):
@@ -81,6 +87,8 @@ def display_shop(bot, user, channel, page=None, *args):
 
 
 def purchase(bot, user, channel, item=None, amount=None, *args):
+    if item == None or amount == None:
+        return
     amount = 1 if amount == None else int(amount)
     coins = db.field("SELECT Coins FROM userbalance WHERE UserID = ?", user["id"])
     gems = db.field("SELECT Gems FROM userbalance WHERE UserID = ?", user["id"])
@@ -106,13 +114,16 @@ def purchase(bot, user, channel, item=None, amount=None, *args):
         )
     else:
         bot.send_message(
-            f"{item} has been purchased for {(int(cost) * amount)} {currency}.", channel
+            f"{amount} {item} has been purchased for {(int(cost) * amount)} {currency}.",
+            channel,
         )
         db.execute(
             f"UPDATE userbalance SET {currency}s = {currency}s - ? WHERE UserID = ?",
             (cost * amount),
             user["id"],
         )
-        bot.discord_log({
-                "content": f"{user['name']} has purchased {item} for {(int(cost) * amount)} {currency}."
-            })
+        bot.discord_log(
+            {
+                "content": f"{user['name']} has purchased {amount} {item} for {(int(cost) * amount)} {currency}."
+            }
+        )
