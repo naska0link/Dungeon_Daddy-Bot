@@ -22,7 +22,7 @@ class DNDStore(Resource):
 api.add_resource(DNDStore, "/dndstore")
 
 if __name__ == "__main__":
-    # from waitress import serve
+    from waitress import serve
 
-    # serve(app, host="0.0.0.0", port=8080)
-    app.run()  # run our Flask app
+    serve(app, host="0.0.0.0", port=8080)
+    # app.run()  # run our Flask app

@@ -18,7 +18,8 @@ function DNDStore() {
     let {
         data,
         loading
-    } = useFetch("http://127.0.0.1:5000/dndstore");
+    } = useFetch("http://www.naskalink.com/api/dndstore");
+    // http://www.naskalink.com/api/dndstore
   return (
     <div>
           {loading ? 

@@ -112,7 +112,7 @@ class Bot(SingleServerIRCBot):
             cxn.join(channel)
             self.send_message("Now online.", channel)
         self.discord_log({"content": "Now online."})
-        # self._resend_copyright()
+        self._resend_copyright()
         # Builds the database, and makes sure the that they are set up right
         db.build()
         for channel in self.CHANNELS:
