@@ -129,6 +129,6 @@ dmypy.json
 .pyre/
 
 tokens.env
-/files
+/file
 /.vscode
 *.pem
