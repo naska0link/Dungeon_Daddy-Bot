@@ -68,22 +68,23 @@ def remove_shop(bot, user, channel, item=None, *args):
 
 
 def display_shop(bot, user, channel, page=None, *args):
-    try:
-        page = 0 if page == None else int(page) - 1
-    except:
-        return
-    shop_length = db.field("SELECT COUNT(*) FROM shop")
-    shop_page_len = math.ceil(int(shop_length) / 10)
-    item_start = page * 10
-    item_end = page + 10
-    if (item_start) > int(shop_length):
-        pass
-    else:
-        shop_items = db.records(f"SELECT * FROM shop LIMIT {item_start}, {item_end}")
-        items = ", ".join(
-            [f"{item[0].replace('_', ' ')} {item[1]} {item[2]}" for item in shop_items]
-        )
-        bot.send_message(f"Page {page + 1} of {shop_page_len}: {items}", channel)
+    bot.send_message(f"Go to http://www.naskalink.com/dndstore for the items", channel)
+    # try:
+    #     page = 0 if page == None else int(page) - 1
+    # except:
+    #     return
+    # shop_length = db.field("SELECT COUNT(*) FROM shop")
+    # shop_page_len = math.ceil(int(shop_length) / 10)
+    # item_start = page * 10
+    # item_end = page + 10
+    # if (item_start) > int(shop_length):
+    #     pass
+    # else:
+    #     shop_items = db.records(f"SELECT * FROM shop LIMIT {item_start}, {item_end}")
+    #     items = ", ".join(
+    #         [f"{item[0].replace('_', ' ')} {item[1]} {item[2]}" for item in shop_items]
+    #     )
+    #     bot.send_message(f"Page {page + 1} of {shop_page_len}: {items}", channel)
 
 
 def purchase(bot, user, channel, item=None, amount=None, *args):
@@ -124,6 +125,6 @@ def purchase(bot, user, channel, item=None, amount=None, *args):
         )
         bot.discord_log(
             {
-                "content": f"{user['name']} has purchased {amount} {item} for {(int(cost) * amount)} {currency}."
+                "content": f"{user['name']} has purchased {amount} {item} for {(int(cost) * amount)} {currency} in {channel}."
             }
         )
