@@ -88,7 +88,7 @@ def display_shop(bot, user, channel, page=None, *args):
 
 
 def purchase(bot, user, channel, item=None, amount=None, *args):
-    if item == None or amount == None:
+    if item == None:
         return
     amount = 1 if amount == None else int(amount)
     coins = db.field("SELECT Coins FROM userbalance WHERE UserID = ?", user["id"])
