@@ -92,13 +92,6 @@ class Bot(SingleServerIRCBot):
         self.update_access_token_timer = Timer(3600, self.update_access_token)
         self.update_access_token_timer.start()
 
-    def _resend_copyright(self):
-        self.send_message_all(
-            "Twitchpaign is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC."
-        )
-        self._resend_copyright = Timer(1800, self._resend_copyright)
-        self._resend_copyright.start()
-
     # Runs when the bot connects to the channels
     def on_welcome(self, cxn, event):
         # Updates the subscription list
@@ -112,7 +105,6 @@ class Bot(SingleServerIRCBot):
             cxn.join(channel)
             self.send_message("Now online.", channel)
         self.discord_log({"content": "Now online."})
-        self._resend_copyright()
         # Builds the database, and makes sure the that they are set up right
         db.build()
         for channel in self.CHANNELS:
